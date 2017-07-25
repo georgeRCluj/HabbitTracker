@@ -6,16 +6,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.example.android.habbittracker.data.HabbitContract;
-import com.example.android.habbittracker.data.HabbitDbHelper;
-import com.example.android.habbittracker.data.HabbitContract.HabbitEntry;
+import com.example.android.habbittracker.data.HabitDbHelper;
+import com.example.android.habbittracker.data.HabitContract.HabitEntry;
 
-import static com.example.android.habbittracker.data.HabbitDbHelper.LOG_TAG;
+import static com.example.android.habbittracker.data.HabitDbHelper.LOG_TAG;
 
 public class MainActivity extends AppCompatActivity {
-    private HabbitDbHelper mDbHelper;
+    private HabitDbHelper mDbHelper;
     private final String MONDAY = "Monday";
     private final String TUESDAY = "Tuesday";
     private final String WEDNESDAY = "Wednesday";
@@ -28,42 +26,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mDbHelper = new HabbitDbHelper(this);
+        mDbHelper = new HabitDbHelper(this);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        insertHabbit("Walking the dog", 1, "morning");
-        insertHabbit("Taking medicines", 1, "noon");
-        insertHabbit("Jogging", 2, "afternoon");
+        insertHabit("Walking the dog", 1, "morning");
+        insertHabit("Taking medicines", 1, "noon");
+        insertHabit("Jogging", 2, "afternoon");
         displayDatabaseInfo();
     }
 
     private void displayDatabaseInfo() {
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        // Define projection that specifies which columns from the database we will actually use after this query.
-        String[] projection = {
-                HabbitEntry._ID,
-                HabbitEntry.COLUMN_HABBIT_NAME,
-                HabbitEntry.COLUMN_HABBIT_WEEKDAY,
-                HabbitEntry.COLUMN_HABBIT_DAYTIME};
+        Cursor cursor = querryAllHabits();
 
-        // Perform a query on the habbits table
-        Cursor cursor = db.query(
-                HabbitEntry.TABLE_NAME,   // The table to query
-                projection,            // The columns to return
-                null,                  // The columns for the WHERE clause
-                null,                  // The values for the WHERE clause
-                null,                  // Don't group the rows
-                null,                  // Don't filter by row groups
-                null);                  // The sort order
         try {
             // Figure out the index of each column
-            int idColumnIndex = cursor.getColumnIndex(HabbitEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(HabbitEntry.COLUMN_HABBIT_NAME);
-            int dayColumnIndex = cursor.getColumnIndex(HabbitEntry.COLUMN_HABBIT_WEEKDAY);
-            int dayTimeColumnIndex = cursor.getColumnIndex(HabbitEntry.COLUMN_HABBIT_DAYTIME);
+            int idColumnIndex = cursor.getColumnIndex(HabitEntry._ID);
+            int nameColumnIndex = cursor.getColumnIndex(HabitEntry.COLUMN_HABIT_NAME);
+            int dayColumnIndex = cursor.getColumnIndex(HabitEntry.COLUMN_HABIT_WEEKDAY);
+            int dayTimeColumnIndex = cursor.getColumnIndex(HabitEntry.COLUMN_HABIT_DAYTIME);
 
             while (cursor.moveToNext()) {
                 // Use that index to extract the String or Int value of the element at the current row the cursor is on.
@@ -74,25 +57,25 @@ public class MainActivity extends AppCompatActivity {
 
                 String currentDayToShow = "";
                 switch (currentDay) {
-                    case HabbitEntry.DAY_MONDAY:
+                    case HabitEntry.DAY_MONDAY:
                         currentDayToShow = MONDAY;
                         break;
-                    case HabbitEntry.DAY_TUESDAY:
+                    case HabitEntry.DAY_TUESDAY:
                         currentDayToShow = TUESDAY;
                         break;
-                    case HabbitEntry.DAY_WEDNESDAY:
+                    case HabitEntry.DAY_WEDNESDAY:
                         currentDayToShow = WEDNESDAY;
                         break;
-                    case HabbitEntry.DAY_THURSDAY:
+                    case HabitEntry.DAY_THURSDAY:
                         currentDayToShow = THURSDAY;
                         break;
-                    case HabbitEntry.DAY_FRIDAY:
+                    case HabitEntry.DAY_FRIDAY:
                         currentDayToShow = FRIDAY;
                         break;
-                    case HabbitEntry.DAY_SATURDAY:
+                    case HabitEntry.DAY_SATURDAY:
                         currentDayToShow = SATURDAY;
                         break;
-                    case HabbitEntry.DAY_SUNDAY:
+                    case HabitEntry.DAY_SUNDAY:
                         currentDayToShow = SUNDAY;
                         break;
                 }
@@ -103,14 +86,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void insertHabbit(String habbitName, int habbitWeekDay, String habbitDayTime) {
+    private Cursor querryAllHabits() {
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        // Define projection that specifies which columns from the database we will actually use after this query.
+        String[] projection = {
+                HabitEntry._ID,
+                HabitEntry.COLUMN_HABIT_NAME,
+                HabitEntry.COLUMN_HABIT_WEEKDAY,
+                HabitEntry.COLUMN_HABIT_DAYTIME};
+
+        // Perform a query on the habits table
+        Cursor cursor = db.query(
+                HabitEntry.TABLE_NAME,   // The table to query
+                projection,            // The columns to return
+                null,                  // The columns for the WHERE clause
+                null,                  // The values for the WHERE clause
+                null,                  // Don't group the rows
+                null,                  // Don't filter by row groups
+                null);                  // The sort order
+        return cursor;
+    }
+
+    private void insertHabit(String habitName, int habitWeekDay, String habitDayTime) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(HabbitEntry.COLUMN_HABBIT_NAME, habbitName);
-        values.put(HabbitEntry.COLUMN_HABBIT_WEEKDAY, habbitWeekDay);
-        values.put(HabbitEntry.COLUMN_HABBIT_DAYTIME, habbitDayTime);
+        values.put(HabitEntry.COLUMN_HABIT_NAME, habitName);
+        values.put(HabitEntry.COLUMN_HABIT_WEEKDAY, habitWeekDay);
+        values.put(HabitEntry.COLUMN_HABIT_DAYTIME, habitDayTime);
 
-        long newRowId = db.insert(HabbitEntry.TABLE_NAME, null, values);
+        long newRowId = db.insert(HabitEntry.TABLE_NAME, null, values);
 
         // Show a log message depending on whether or not the insertion was successful
         if (newRowId == -1) {
@@ -118,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(LOG_TAG, "Error with saving habbit");
         } else {
             // Otherwise, the insertion was successful and we can display a toast with the row ID.
-            Log.d(LOG_TAG, "Habbit saved with row id: " + newRowId);
+            Log.d(LOG_TAG, "Habit saved with row id: " + newRowId);
         }
     }
 }
